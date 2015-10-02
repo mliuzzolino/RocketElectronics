@@ -6,7 +6,7 @@
 # Dates:        October 1st - December 25th
 # --------------------------------------------------
 
-Stage 1:
+Stage 1.0:
 Utilize Arduino Uno with a simple temperature circuit to gather temperature
 data, send it to serial, and use a Python script (using Pyserial) to read from
 serial and create real-time plot of temperature vs. time.
