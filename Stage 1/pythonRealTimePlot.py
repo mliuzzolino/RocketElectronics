@@ -12,28 +12,33 @@ print("connected to: " + ser.portstr)
 time.sleep(1)
 
 # 
-outputFile = open(".data/outputFile.txt", "w")
+outputFile = open("./data/outputFile.txt", "w")
 
 count = 0
 k = 0
-maxPlot = 5
-minPlot = 0
+
+line = ser.readline()
+maxPlot = 21
+minPlot = 20
+
+
 prevTemp = None
 while True:
     if (ser.readline() == None):
         continue
 
+    # Gets value from serial
     line = ser.readline()
     print("ser.readline() = {}".format(line))
     print("line type: {}".format(type(line)))
 
-
+    # Dynamically adjusts the max and min plot values
     if float(line) > maxPlot:
-        maxPlot = float(line)
+        maxPlot = float(line) + 2
     elif float(line) < minPlot:
-        minPlot = float(line)
+        minPlot = float(line) - 2
 
-    # Accounts for very anomolies ruining frame
+    # Accounts for very large anomolies destroying resolution of plot
     errors = 0
     if (prevTemp == None or abs(prevTemp - float(line))) > 10:
         errors += 1
