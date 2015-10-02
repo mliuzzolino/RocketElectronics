@@ -42,7 +42,7 @@ void loop() {
 
   count++;
  
-  delay(1000);
+  delay(100);
   
 }
 float getVoltage(int pin) {

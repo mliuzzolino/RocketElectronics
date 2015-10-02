@@ -11,8 +11,8 @@ print("connected to: " + ser.portstr)
 
 time.sleep(1)
 
-
-outputFile = open("./outputFile.txt", "w")
+# 
+outputFile = open(".data/outputFile.txt", "w")
 
 count = 0
 k = 0
@@ -45,7 +45,7 @@ while True:
     outputFile.write(line)
 
 
-    # PLOT
+    # Real-time Data plot
 
     if (count < 100):
         plt.axis([0, count + 10, minPlot, maxPlot])
@@ -72,6 +72,8 @@ while True:
         k += 1
         count += 1
         prevTemp = float(line)
+
+
 
 # Close serial port
 ser.close()
