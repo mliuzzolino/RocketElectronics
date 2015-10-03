@@ -12,7 +12,7 @@ const float baselineTemp = 20.0;
 char mode = 'm';
 int addr = 0;
 char menuChoice = '0';
-byte value;
+
 
 void setup() {
   Serial.begin(9600);
@@ -83,7 +83,7 @@ void WriteData(int Pin) {
   
   // Declarations
   int sensorVal = analogRead(sensorPin);
-  int count = 0;
+  int voltVal, count = 0;
   float voltage, degreesC;
   
   
@@ -96,15 +96,24 @@ void WriteData(int Pin) {
   
   // Now we'll convert the voltage to degrees Celsius.
   // This formula comes from the temperature sensor datasheet:
-  degreesC = (voltage - 0.5) * 100.0;
-
-
+  // CONVERT IN PYTHON SCRIPT
+  // degreesC = (voltage - 0.5) * 100.0;
+  Serial.print("Address: ");
+  Serial.print(addr);
+  Serial.print("\t");
+  Serial.println(voltage);
   /***
     Write the value to the appropriate byte of the EEPROM.
     these values will remain there when the board is
     turned off.
   ***/
-  EEPROM.write(addr, degreesC);
+
+  voltVal = (voltage * 1000) / 4;
+  Serial.print("voltVal: ");
+  Serial.print("\t");
+  Serial.println(voltVal);
+  
+  EEPROM.write(addr, voltVal);
   /***
     Advance to the next address, when at the end restart at the beginning.
 
@@ -139,12 +148,48 @@ void WriteData(int Pin) {
 void ReadData(int Pin) {
 
   // Declarations
+  byte value;
+  float voltageVal;
+  float voltage, degreesC;
   
+  value = EEPROM.read(addr);  
+  Serial.print("Address: ");
+  Serial.print(addr);
+  Serial.print("\t");
+  Serial.println(value, DEC);
+
+
+
+  voltageVal = value;
+
+
+  voltage = voltageVal * 4 / 1000;
+  //Serial.print("Voltage: ");
+  //Serial.print("\t");
+  //Serial.println(voltage);
+
+  degreesC = (voltage - 0.5) * 100.0;
+  //Serial.print("Degrees C: ");
+  //Serial.print("\t");
+  Serial.println(degreesC);
+
+
   
-  value == EEPROM.read(addr);  
-  
-  
- 
+  /***
+    Advance to the next address, when at the end restart at the beginning.
+
+    Larger AVR processors have larger EEPROM sizes, E.g:
+    - Arduno Duemilanove: 512b EEPROM storage.
+    - Arduino Uno:        1kb EEPROM storage.
+    - Arduino Mega:       4kb EEPROM storage.
+
+    Rather than hard-coding the length, you should use the pre-provided length function.
+    This will make your code portable to all AVR processors.
+  ***/
+  addr = addr + 1;
+  if (addr == EEPROM.length()) {
+    addr = 0;
+  }
   delay(100);
   return;
 }
