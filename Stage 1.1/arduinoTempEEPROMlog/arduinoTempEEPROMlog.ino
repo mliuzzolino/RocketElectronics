@@ -1,5 +1,11 @@
-// Code pieces taken from 
+// References
 // https://learn.sparkfun.com/tutorials/sik-experiment-guide-for-arduino---v32/experiment-7-reading-a-temperature-sensor
+// https://www.arduino.cc/en/Tutorial/EEPROMWrite
+// https://www.arduino.cc/en/Tutorial/EEPROMRead
+//
+// The following may be useful to read on storing EEPROM data:
+// http://www.vernier.com/engineering/arduino/store-data-eeprom/
+//
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -173,7 +179,6 @@ void ReadData(int Pin) {
   //Serial.print("\t");
   Serial.println(degreesC);
 
-
   
   /***
     Advance to the next address, when at the end restart at the beginning.
@@ -201,25 +206,6 @@ float getVoltage(int pin) {
   // "void" in front of it; this is because it returns a floating-
   // point value, which is the true voltage on that pin (0 to 5V).
 
-  // You can write your own functions that take in parameters
-  // and return values. Here's how:
-
-    // To take in parameters, put their type and name in the
-    // parenthesis after the function name (see above). You can
-    // have multiple parameters, separated with commas.
-
-    // To return a value, put the type BEFORE the function name
-    // (see "float", above), and use a return() statement in your code
-    // to actually return the value (see below).
-
-    // If you don't need to get any parameters, you can just put
-    // "()" after the function name.
-
-    // If you don't need to return a value, just write "void" before
-    // the function name.
-
-  // Here's the return statement for this function. We're doing
-  // all the math we need to do within this statement:
 
   return (analogRead(pin) * 0.004882814);
   // This equation converts the 0 to 1023 value that analogRead()
