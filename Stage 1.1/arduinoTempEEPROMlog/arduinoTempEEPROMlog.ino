@@ -61,29 +61,37 @@ void loop() {
       
               Serial.print("I received: ");
               Serial.println(menuChoice);
-           }
-
-           if ((menuChoice == 'w') || (menuChoice == 'W')) {
-              Serial.println("Beginning to write data to EEPROM...");
-              WriteData(sensorPin);
-              mode = 'w';
-           }
-           else if ((menuChoice == 'r') || (menuChoice == 'R') ) {
-              Serial.println("Beginning to read data from EEPROM...");
-              ReadData(sensorPin);
-              mode = 'r';
-           }
-           else if ((menuChoice == 'm') || (menuChoice == 'M') ) {
-              Serial.println("Returning to menu...");
-              mode = '0';
-              menuChoice = '1';
-           }
-           else {
-              Serial.println("Please re-enter a valid command.");
-              mode = '0';
-              menuChoice = '1';
-           }
            
+
+              if ((menuChoice == 'w') || (menuChoice == 'W')) {
+                   Serial.println("\n");
+                   Serial.println("Beginning to write data to EEPROM...");
+                   WriteData(sensorPin);
+                   mode = 'w';
+              }
+              else if ((menuChoice == 'r') || (menuChoice == 'R') ) {
+                   Serial.println("\n");
+                   Serial.println("Beginning to read data from EEPROM...");
+                   ReadData(sensorPin);
+                   mode = 'r';
+              }
+              else if ((menuChoice == 'm') || (menuChoice == 'M') ) {
+                   Serial.println("\n");
+                   Serial.println("Returning to menu...");
+                   mode = 'm';
+                   menuChoice = '1';
+              }
+              else {
+                   Serial.println("\n");
+                   Serial.println("************************************");
+                   Serial.println("Error. Please enter a valid command.");
+                   Serial.println("************************************");
+                   mode = 'm';
+                   menuChoice = '1';
+              } // END INNER IF ELSE BRANCHING
+          } // END OUTER IF ELSE BRANCHING
+        
+          
       }
         
   }
