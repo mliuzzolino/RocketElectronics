@@ -30,6 +30,15 @@ void setup() {
   pinMode(readPin, OUTPUT);
   pinMode(pausePin, OUTPUT);
   pinMode(sensorPin, INPUT);
+
+
+  /* 
+      Clears the EEPROM, initializing all address' to value 0
+   * 
+   */
+  for (int i = 0 ; i < EEPROM.length() ; i++) {
+    EEPROM.write(i, 0);
+  }
 }
 
 

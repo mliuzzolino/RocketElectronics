@@ -23,17 +23,18 @@ def Menu():
 
 
 def Data():
-    print(ser.readline())
-    time.sleep(1)
-    data_left = ser.inWaiting()
+    
+    data_left = 1
 
-    if (data_left == 0):
-        return 0
-    else:
-        return 1
+    while (data_left != 0):
+        print(ser.readline())
+    
+        data_left = ser.inWaiting()
+        time.sleep(0.1)
+    
 
 
-collectingData = 1
+
 def main():
 
     Menu()
@@ -41,14 +42,20 @@ def main():
     while (1):
         
         while (1):
+
             word = raw_input("> ")
             
-            if (word == "end"):
+            if ((word == "end") or (word == 'exit')) :
                 return
             
-            elif (word == "w"):
+            elif ((word == "w") or (word == "W")):
                 ser.write(word)
-            
+                Data()
+
+            elif ((word == "r") or (word == "R")):
+                ser.write(word)
+                Data()
+
             elif (word == "m"):
                 time.sleep(1)
                 ser.write(word)
