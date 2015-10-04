@@ -12,31 +12,47 @@
 #include <math.h>
 #include <EEPROM.h>
 
-
-const int sensorPin = A0;
+const int writePin = 5;
+const int readPin = 9;
+const int pausePin = 7;
+const int sensorPin = A0;   // Temperature Pin
 const float baselineTemp = 20.0;
+
+int addr = 0;   // Initializes address at 0 for EEPROM
+
 char mode = 'm';
-int addr = 0;
 char menuChoice = '0';
 
-
+// SETUP of Serial port and PINS for LED
 void setup() {
   Serial.begin(9600);
+  pinMode(writePin, OUTPUT);
+  pinMode(readPin, OUTPUT);
+  pinMode(pausePin, OUTPUT);
+  pinMode(sensorPin, INPUT);
 }
 
-void loop() {
-  
-  if (mode == 'm') {
 
-      Serial.println("Menu");
-      Serial.println("--------------");
-      Serial.println("1. Pre-launch");
-      Serial.println("2. Post-launch");
-      Serial.println("--------------");
+// MAIN LOOP
+void loop() {
+
+
+  // MENU 
+  if (mode == 'm') {
+      Serial.println("     Menu");
+      Serial.println("-----------------");
+      Serial.println("  [w]rite Data");
+      Serial.println("  [r]ead Data");
+      Serial.println("-----------------");
       Serial.println("Type the number and press enter");
-      Serial.println("Press [m]enu to return to menu at any point.");
+      Serial.println("Press [m]enu to return to menu,");
+      Serial.println("or press any other key to pause during any point of the program.");
 
       while (menuChoice == '0') {
+          digitalWrite(writePin, HIGH);
+          digitalWrite(readPin, HIGH);
+          digitalWrite(pausePin, LOW);
+          
           // send data only when you receive data:
           if (Serial.available() > 0) {
       
@@ -47,49 +63,112 @@ void loop() {
               Serial.println(menuChoice);
            }
 
-           if (menuChoice == '1') {
+           if ((menuChoice == 'w') || (menuChoice == 'W')) {
               Serial.println("Beginning to write data to EEPROM...");
               WriteData(sensorPin);
               mode = 'w';
            }
-           else if (menuChoice == '2') {
+           else if ((menuChoice == 'r') || (menuChoice == 'R') ) {
               Serial.println("Beginning to read data from EEPROM...");
               ReadData(sensorPin);
               mode = 'r';
            }
+           else if ((menuChoice == 'm') || (menuChoice == 'M') ) {
+              Serial.println("Returning to menu...");
+              mode = '0';
+              menuChoice = '1';
+           }
+           else {
+              Serial.println("Please re-enter a valid command.");
+              mode = '0';
+              menuChoice = '1';
+           }
+           
       }
         
   }
   else if (mode == 'w') {
+      digitalWrite(writePin, HIGH);
+      digitalWrite(readPin, LOW);
+      digitalWrite(pausePin, LOW);
       WriteData(sensorPin);
   }
   else if (mode == 'r') {
+      digitalWrite(writePin, LOW);
+      digitalWrite(readPin, HIGH);
+      digitalWrite(pausePin, LOW);
       ReadData(sensorPin);
   }
-  
+  else {
+
+      // LED Outputs
+      digitalWrite(writePin, LOW);
+      digitalWrite(readPin, LOW);    
+      digitalWrite(pausePin, HIGH);
+   
+      char userPause = 'y';
+      Serial.print("Program Paused. Would you like to: ");
+      Serial.println("[m]enu; [w]rite; [r]ead");
+      while (userPause == 'y') {
+           if (Serial.available() > 0) {
+              
+                  // read the incoming char:
+                  mode = Serial.read();
+
+                  if (mode == 'm') {
+                        // Reset menuChoice to 0 to get out of infinite menu loop
+                        menuChoice = '0';
+                        userPause = 'n';
+              
+                        // Resets EEPROM memory to address 0
+                        addr = 0;
+                 
+                        Serial.println("Returning to menu...");
+                   }
+                   else if (mode == 'w') {
+                        menuChoice = 'w';
+                        userPause = 'n';
+
+                        Serial.print("Resuming writing data to EEPROM at address ");
+                        Serial.print(addr);
+                        Serial.println("...");
+                   }
+                   else if (mode == 'r') {
+                        menuChoice = 'r';
+                        userPause = 'n';
+
+                        // Resets EEPROM memory to address 0 for reading
+                        addr = 0;
+                        Serial.println("Proceeding to read EEPROM data...");  
+                   }
+            } // END IF
+       } // END WHILE
+  } // END ELSE
+
+
+  // Enables us to break out of data writing or reading and go back to menu
   if (Serial.available() > 0) {
       
               // read the incoming char:
               mode = Serial.read();
 
               
-              // Reset menuChoice to 0 to get out of infinite menu loop
-              menuChoice = '0';
+   } // END if
+   else if (menuChoice == '1') {
+          menuChoice = '0';
+   }
+    
+} // END void loop 
 
-              // Resets EEPROM memory to address 0
-              addr = 0;
 
-              
-              Serial.println("Returning to menu...");
-              
-           }
-}
+
+
 
 void WriteData(int Pin) {
   
   // Declarations
   int sensorVal = analogRead(sensorPin);
-  int voltVal, count = 0;
+  int voltVal;
   float voltage, degreesC;
   
   
@@ -104,9 +183,9 @@ void WriteData(int Pin) {
   // This formula comes from the temperature sensor datasheet:
   // CONVERT IN PYTHON SCRIPT
   // degreesC = (voltage - 0.5) * 100.0;
-  Serial.print("Address: ");
+  Serial.print("Address[");
   Serial.print(addr);
-  Serial.print("\t");
+  Serial.print("]: \t");
   Serial.println(voltage);
   /***
     Write the value to the appropriate byte of the EEPROM.
@@ -115,9 +194,6 @@ void WriteData(int Pin) {
   ***/
 
   voltVal = (voltage * 1000) / 4;
-  Serial.print("voltVal: ");
-  Serial.print("\t");
-  Serial.println(voltVal);
   
   EEPROM.write(addr, voltVal);
   /***
@@ -143,7 +219,7 @@ void WriteData(int Pin) {
     ++addr &= EEPROM.length() - 1;
   ***/
 
-  count++;
+  
  
   delay(100);
   return;
@@ -159,15 +235,8 @@ void ReadData(int Pin) {
   float voltage, degreesC;
   
   value = EEPROM.read(addr);  
-  Serial.print("Address: ");
-  Serial.print(addr);
-  Serial.print("\t");
-  Serial.println(value, DEC);
-
-
 
   voltageVal = value;
-
 
   voltage = voltageVal * 4 / 1000;
   //Serial.print("Voltage: ");
@@ -177,9 +246,14 @@ void ReadData(int Pin) {
   degreesC = (voltage - 0.5) * 100.0;
   //Serial.print("Degrees C: ");
   //Serial.print("\t");
-  Serial.println(degreesC);
-
   
+
+  Serial.print("Address[");
+  Serial.print(addr);
+  Serial.print("]: \t");
+  Serial.println(degreesC);
+  
+
   /***
     Advance to the next address, when at the end restart at the beginning.
 
