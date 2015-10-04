@@ -58,7 +58,7 @@ void loop() {
       
               // read the incoming char:
               menuChoice = Serial.read();
-      
+              delay(1);
               Serial.print("I received: ");
               Serial.println(menuChoice);
            

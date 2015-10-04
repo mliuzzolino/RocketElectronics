@@ -36,12 +36,13 @@ def Data():
 collectingData = 1
 def main():
 
+    Menu()
+    
     while (1):
-        Menu()
-
+        
         while (1):
             word = raw_input("> ")
-
+            
             if (word == "end"):
                 return
             
@@ -49,29 +50,18 @@ def main():
                 ser.write(word)
             
             elif (word == "m"):
+                time.sleep(1)
                 ser.write(word)
                 Menu()
 
 
-            """
-
-            while(collectingData == 1):
-
-                collectingData = Menu()
             
-            
-            word = raw_input('> ')
-            if(word == "end"): 
-                break;
-            elif (word == "1"):
-                collectingData = 1
-                while(collectingData == 1):
-                    collectingData = Data()
+               
 
 
-            ser.write(word)
-            collectingData = 1
-            """
+         
+
+
 
     #Closes the connection
     ser.close()
