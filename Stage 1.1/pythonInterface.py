@@ -26,7 +26,7 @@ def Menu():
 
     while (data_left != 0):
         print(ser.readline())
-        time.sleep(.1)
+        time.sleep(0.1)
         data_left = ser.inWaiting()
 
     return
@@ -195,25 +195,26 @@ def main():
 
     while (1):
 
-
         if ((mode == "end") or (mode == 'exit')) :
             ser.close()
             exit()
 
         elif (mode == 'm'):
 
-            ser.write(mode)
+            #ser.write(mode)
             time.sleep(1)
             Menu()
             mode = raw_input("> ")
+
             if (mode == 'm'):
                 print("Already at menu. Would you like to:")
                 print("[w]rite")
                 print("[r]ead")
                 print("[c]lear")
+                print("[o]ptions")
 
 
-            elif (mode == 'w'):
+            if (mode == 'w'):
 
                 time.sleep(0.1)
                 launch = 0
@@ -234,15 +235,25 @@ def main():
         elif (mode == 'c'):
 
             ser.write(mode)
-            time.sleep(1)
+            time.sleep(0.1)
+
+            while ser.inWaiting() > 0:
+                out = ser.readline()
+                print(out)
+                time.sleep(1)
+
+            mode = 'm'
+
+
+        elif (mode == 'o'):
+
+            ser.write(mode)
+            time.sleep(0.1)
 
             while ser.inWaiting() > 0:
                 out = ser.readline()
                 print(out)
                 time.sleep(0.1)
-
-            mode = 'm'
-
 
 
 

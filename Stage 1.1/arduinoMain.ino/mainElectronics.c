@@ -44,99 +44,6 @@ void setup() {
         Serial.read();
 }
 
-void PrintOptions(char RTData) {
-    Serial.println("Options");
-    Serial.println("-------------------");
-    Serial.print("RealTime Data: ");
-    Serial.println(RTData);
-    if (RTData == 'y') {
-        Serial.println("ON");
-    }
-    else {
-        Serial.println("OFF");
-    }
-    Serial.println("-------------------");
-
-    return;
-}
-
-
-char ChangeOptions(char mode, char *RTData) {
-    char changeRTDataStatus;
-    char RTDataStatus;
-    char changeMode;
-
-    if (*RTData == 'y') {
-        RTDataStatus = 'ON';
-    }
-    else {
-        RTDataStatus = 'OFF';
-    }
-
-    while (mode == 'o') {
-        changeRTDataStatus = 'x';
-        RTDataStatus = 'x';
-        changeMode = 'x';
-
-        Serial.print("Change RT Data Status? (y/n) ");
-
-        while (changeRTDataStatus == 'x') {
-
-            if (Serial.available() > 0) {
-                changeRTDataStatus = Serial.read();
-            }
-        }
-
-        if (changeRTDataStatus == 'y') {
-            Serial.print("\nTurn O[n]/Of[f]? ");
-            while (RTDataStatus == 'x') {
-                if (Serial.available() > 0) {
-                    RTDataStatus = Serial.read();
-                }
-            }
-
-            if (RTDataStatus == 'n') {
-                Serial.println("Turning RT Data ON");
-
-                *RTData == 'y';
-                digitalWrite(RTPin, HIGH);
-            }
-            else if (RTDataStatus == 'f') {
-                Serial.println("Turning RT Data OFF");
-
-                *RTData == 'n';
-                digitalWrite(RTPin, LOW);
-            }
-            else {
-                Serial.println("Unknown command entered.");
-                Serial.println("Keeping RT Data at original value.");
-            }
-        }
-
-        Serial.println("Press [m] to return to menu, or");
-        Serial.println("Press [o] to return to options.");
-
-        while (changeMode == 'x') {
-            if (Serial.available() > 0) {
-                changeMode = Serial.read();
-
-                if (changeMode == 'm') {
-                    Serial.println("Returning to menu...\n\n");
-                    mode = 'm';
-                }
-                else if (changeMode == 'o') {
-                    Serial.println("Returning to options...\n\n");
-                    mode = 'o';
-                    PrintOptions(*RTData);
-                }
-            }
-
-        }
-    }
-
-    return mode;
-}
-
 
 
 char mode = 'm';
@@ -257,22 +164,123 @@ void loop() {
 } // END void loop
 
 
+
+
+
+void PrintOptions(char RTData) {
+    Serial.println("Options");
+    Serial.println("-------------------");
+    Serial.print("RealTime Data: ");
+    Serial.println(RTData);
+    if (RTData == 'y') {
+        Serial.println("ON");
+    }
+    else {
+        Serial.println("OFF");
+    }
+    Serial.println("-------------------");
+
+    return;
+}
+
+
+char ChangeOptions(char mode, char *RTData) {
+    char changeRTDataStatus;
+    char RTDataStatus;
+    char changeMode;
+
+    if (*RTData == 'y') {
+        RTDataStatus = 'ON';
+    }
+    else {
+        RTDataStatus = 'OFF';
+    }
+
+    while (mode == 'o') {
+        changeRTDataStatus = 'x';
+        RTDataStatus = 'x';
+        changeMode = 'x';
+
+        Serial.print("Change RT Data Status? (y/n) ");
+
+        while (changeRTDataStatus == 'x') {
+
+            if (Serial.available() > 0) {
+                changeRTDataStatus = Serial.read();
+            }
+        }
+
+        if (changeRTDataStatus == 'y') {
+            Serial.print("\nTurn O[n]/Of[f]? ");
+            while (RTDataStatus == 'x') {
+                if (Serial.available() > 0) {
+                    RTDataStatus = Serial.read();
+                }
+            }
+
+            if (RTDataStatus == 'n') {
+                Serial.println("Turning RT Data ON");
+
+                *RTData == 'y';
+                digitalWrite(RTPin, HIGH);
+            }
+            else if (RTDataStatus == 'f') {
+                Serial.println("Turning RT Data OFF");
+
+                *RTData == 'n';
+                digitalWrite(RTPin, LOW);
+            }
+            else {
+                Serial.println("Unknown command entered.");
+                Serial.println("Keeping RT Data at original value.");
+            }
+        }
+
+        Serial.println("Press [m] to return to menu, or");
+        Serial.println("Press [o] to return to options.");
+
+        while (changeMode == 'x') {
+            if (Serial.available() > 0) {
+                changeMode = Serial.read();
+
+                if (changeMode == 'm') {
+                    Serial.println("Returning to menu...\n\n");
+                    mode = 'm';
+                }
+                else if (changeMode == 'o') {
+                    Serial.println("Returning to options...\n\n");
+                    mode = 'o';
+                    PrintOptions(*RTData);
+                }
+            }
+
+        }
+    }
+
+    return mode;
+}
+
+
+
+
+
+
 void ClearEEPROM(void) {
     for (int i = 0 ; i < EEPROM.length() ; i++) {
 
-      if ((i % 100 == 0) || (i % 50 == 0)) {
-          digitalWrite(writePin, HIGH);
-          digitalWrite(readPin, LOW);
-          digitalWrite(pausePin, LOW);
-      }
-      else {
-          digitalWrite(writePin, LOW);
-          digitalWrite(readPin, LOW);
-          digitalWrite(pausePin, HIGH);
+        if ((i % 100 == 0) || (i % 50 == 0)) {
+            digitalWrite(writePin, HIGH);
+            digitalWrite(readPin, LOW);
+            digitalWrite(pausePin, LOW);
+        }
+        else {
+            digitalWrite(writePin, LOW);
+            digitalWrite(readPin, LOW);
+            digitalWrite(pausePin, HIGH);
 
-      }
+        }
 
-      EEPROM.write(i, 0);
+        EEPROM.write(i, 0);
     }
     return;
 }
@@ -395,9 +403,9 @@ char WriteData(int sensorPin, int collectDataBtn) {
         // This formula comes from the temperature sensor datasheet:
         // CONVERT IN PYTHON SCRIPT
         // degreesC = (voltage - 0.5) * 100.0;
-        Serial.print("Address[");
-        Serial.print(addr);
-        Serial.print("]: \t");
+        //Serial.print("Address[");
+        //Serial.print(addr);
+        //Serial.print("]: \t");
         Serial.println(voltage);
         /***
           Write the value to the appropriate byte of the EEPROM.
@@ -478,9 +486,9 @@ char ReadData(int Pin, char prevMode) {
         //Serial.print("\t");
 
 
-        Serial.print("Address[");
-        Serial.print(addr);
-        Serial.print("]: \t");
+        //Serial.print("Address[");
+        //Serial.print(addr);
+        //Serial.print("]: \t");
         Serial.println(degreesC);
 
 
