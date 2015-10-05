@@ -17,7 +17,7 @@
 const int writePin = 5;
 const int readPin = 9;
 const int pausePin = 7;
-const int collectDataBtn = 3;
+const int collectDataBtn = 11;
 const int sensorPin = A0;   // Temperature Pin
 
 
@@ -273,7 +273,7 @@ char WriteData(int sensorPin, int collectDataBtn) {
         ***/
 
         // Convert for storage to EEPROM
-        voltVal = (voltage * 1000) / 4;
+        voltVal = (voltage * 10000) / 4;
 
         // Write to EEPROM
         EEPROM.write(addr, voltVal);
@@ -335,7 +335,7 @@ char ReadData(int Pin, char prevMode) {
 
         voltageVal = value;
 
-        voltage = voltageVal * 4 / 1000;
+        voltage = voltageVal * 4 / 10000;
         //Serial.print("Voltage: ");
         //Serial.print("\t");
         //Serial.println(voltage);
