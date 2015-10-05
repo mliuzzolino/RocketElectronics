@@ -15,6 +15,8 @@
 const int writePin = 5;
 const int readPin = 9;
 const int pausePin = 7;
+const int collectDataBtn = 3;
+
 const int sensorPin = A0;   // Temperature Pin
 const float baselineTemp = 20.0;
 
@@ -36,9 +38,10 @@ void setup() {
       Clears the EEPROM, initializing all address' to value 0
    * 
    */
-  for (int i = 0 ; i < EEPROM.length() ; i++) {
-    EEPROM.write(i, 0);
-  }
+  // INACTIVATE for now. Takes too long.
+  //for (int i = 0 ; i < EEPROM.length() ; i++) {
+  //  EEPROM.write(i, 0);
+  //}
 }
 
 
@@ -58,6 +61,8 @@ void loop() {
       Serial.println("or press any other key to pause during any point of the program.");
 
       while (menuChoice == '0') {
+          
+          // Set LEDs to indicate menu mode
           digitalWrite(writePin, HIGH);
           digitalWrite(readPin, HIGH);
           digitalWrite(pausePin, LOW);
