@@ -79,11 +79,6 @@ void loop() {
         case 'w':
         case 'W':
 
-            // Sets LEDs to indicate WRITE mode
-            digitalWrite(writePin, HIGH);
-            digitalWrite(readPin, LOW);
-            digitalWrite(pausePin, LOW);
-
             Serial.println("Entering WRITE mode...");
 
             mode = WriteData(sensorPin, collectDataBtn);
@@ -251,7 +246,9 @@ char WriteData(int sensorPin, int collectDataBtn) {
 
     }
 
-
+    digitalWrite(writePin, HIGH);
+    digitalWrite(readPin, LOW);
+    digitalWrite(pausePin, LOW);
     // Write Data loop
     while (mode == 'w') {
         // First we'll measure the voltage at the analog pin. Normally
@@ -265,9 +262,9 @@ char WriteData(int sensorPin, int collectDataBtn) {
         // This formula comes from the temperature sensor datasheet:
         // CONVERT IN PYTHON SCRIPT
         // degreesC = (voltage - 0.5) * 100.0;
-        Serial.print("Address[");
-        Serial.print(addr);
-        Serial.print("]: \t");
+        //Serial.print("Address[");
+        //Serial.print(addr);
+        //Serial.print("]: \t");
         Serial.println(voltage);
         /***
           Write the value to the appropriate byte of the EEPROM.
@@ -295,9 +292,7 @@ char WriteData(int sensorPin, int collectDataBtn) {
         ***/
 
         addr = addr + 1;
-        if (addr == EEPROM.length()) {
-          addr = 0;
-        }
+
 
         /***
           As the EEPROM sizes are powers of two, wrapping (preventing overflow) of an
@@ -350,9 +345,9 @@ char ReadData(int Pin, char prevMode) {
         //Serial.print("\t");
 
 
-        Serial.print("Address[");
-        Serial.print(addr);
-        Serial.print("]: \t");
+        //Serial.print("Address[");
+        //Serial.print(addr);
+        //Serial.print("]: \t");
         Serial.println(degreesC);
 
 
