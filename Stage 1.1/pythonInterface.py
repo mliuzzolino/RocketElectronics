@@ -8,11 +8,14 @@ import matplotlib.pyplot as plt
 global launch
 launch = 0
 
-ser = serial.Serial('/dev/tty.usbmodem1421', 9600, timeout = 5)
+# USB port on right side of comp
+ser = serial.Serial('/dev/tty.usbmodem1411', 9600, timeout = 2)
+
+# USB port on left side of comp
+#ser = serial.Serial('/dev/tty.usbmodem1421', 9600, timeout = 5)
 ser.flushInput()
-time.sleep(0.1)
 ser.flushOutput()
-time.sleep(0.1)
+time.sleep(1)
 
 
 print ("\n\nConnected to serial port: {}".format(ser.name))
@@ -69,6 +72,7 @@ def WriteData(mode, plotData = 'n'):
     count = 0
     global launch
 
+    outputFile = open("./testdata/inFlightData.txt", "w")
 
     # Gets data from Serial
 
@@ -93,6 +97,8 @@ def WriteData(mode, plotData = 'n'):
             launch = 1
 
 
+
+
             # Plots data in real time
             if (plotData == 'y'):
                 x = (float)(out)
@@ -104,6 +110,9 @@ def WriteData(mode, plotData = 'n'):
                 elif y < minPlot:
                     minPlot = y - 2
 
+                outputFile.write(str(count))
+                outputFile.write(", ")
+                outputFile.write(str(y))
 
                 count = RealTimePlot(y, count, minPlot, maxPlot)
 
@@ -112,9 +121,14 @@ def WriteData(mode, plotData = 'n'):
             elif (plotData == 'n'):
                 x = (float)(out)
                 y = (x - 0.5) * 100.0
-                count += 1
                 print("{}: \t {}".format(count, y))
+                outputFile.write(str(count))
+                outputFile.write(", ")
+                outputFile.write(out)
+                count += 1
 
+
+    outputFile.close()
     return
 
 def ReadData(mode):
@@ -135,7 +149,7 @@ def ReadData(mode):
             outputFile.write(out)
 
         time.sleep(0.1)
-        
+
 
         count += 1
 
@@ -208,7 +222,7 @@ def main():
         elif (mode == 'w'):
             count = 0
             WriteData(mode, plotData)
-            mode = PauseProgram()
+            #mode = PauseProgram()
 
 
         elif (mode == 'r'):

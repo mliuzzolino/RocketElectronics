@@ -21,7 +21,8 @@ const int collectDataBtn = 11;
 const int RTPin = 3;
 const int sensorPin = A0;   // Temperature Pin
 
-char RTData;
+
+
 int j = 0;
 
 
@@ -31,21 +32,110 @@ int j = 0;
 
 // SETUP of Serial port and PINS for LED
 void setup() {
-  Serial.begin(9600);
-  pinMode(writePin, OUTPUT);
-  pinMode(RTPin, OUTPUT);
-  pinMode(readPin, OUTPUT);
-  pinMode(pausePin, OUTPUT);
-  pinMode(sensorPin, INPUT);
-  pinMode(collectDataBtn, INPUT);
+    Serial.begin(9600);
+    pinMode(writePin, OUTPUT);
+    pinMode(RTPin, OUTPUT);
+    pinMode(readPin, OUTPUT);
+    pinMode(pausePin, OUTPUT);
+    pinMode(sensorPin, INPUT);
+    pinMode(collectDataBtn, INPUT);
 
-  while(Serial.available())
-      Serial.read();
+    while(Serial.available())
+        Serial.read();
+}
+
+void PrintOptions(char RTData) {
+    Serial.println("Options");
+    Serial.println("-------------------");
+    Serial.print("RealTime Data: ");
+    Serial.println(RTData);
+    if (RTData == 'y') {
+        Serial.println("ON");
+    }
+    else {
+        Serial.println("OFF");
+    }
+    Serial.println("-------------------");
+
+    return;
 }
 
 
+char ChangeOptions(char mode, char *RTData) {
+    char changeRTDataStatus;
+    char RTDataStatus;
+    char changeMode;
 
+    if (*RTData == 'y') {
+        RTDataStatus = 'ON';
+    }
+    else {
+        RTDataStatus = 'OFF';
+    }
 
+    while (mode == 'o') {
+        changeRTDataStatus = 'x';
+        RTDataStatus = 'x';
+        changeMode = 'x';
+
+        Serial.print("Change RT Data Status? (y/n) ");
+
+        while (changeRTDataStatus == 'x') {
+
+            if (Serial.available() > 0) {
+                changeRTDataStatus = Serial.read();
+            }
+        }
+
+        if (changeRTDataStatus == 'y') {
+            Serial.print("\nTurn O[n]/Of[f]? ");
+            while (RTDataStatus == 'x') {
+                if (Serial.available() > 0) {
+                    RTDataStatus = Serial.read();
+                }
+            }
+
+            if (RTDataStatus == 'n') {
+                Serial.println("Turning RT Data ON");
+
+                *RTData == 'y';
+                digitalWrite(RTPin, HIGH);
+            }
+            else if (RTDataStatus == 'f') {
+                Serial.println("Turning RT Data OFF");
+
+                *RTData == 'n';
+                digitalWrite(RTPin, LOW);
+            }
+            else {
+                Serial.println("Unknown command entered.");
+                Serial.println("Keeping RT Data at original value.");
+            }
+        }
+
+        Serial.println("Press [m] to return to menu, or");
+        Serial.println("Press [o] to return to options.");
+
+        while (changeMode == 'x') {
+            if (Serial.available() > 0) {
+                changeMode = Serial.read();
+
+                if (changeMode == 'm') {
+                    Serial.println("Returning to menu...\n\n");
+                    mode = 'm';
+                }
+                else if (changeMode == 'o') {
+                    Serial.println("Returning to options...\n\n");
+                    mode = 'o';
+                    PrintOptions(*RTData);
+                }
+            }
+
+        }
+    }
+
+    return mode;
+}
 
 
 
@@ -56,6 +146,8 @@ int k = 0;
 
 // MAIN LOOP
 void loop() {
+    char RTData;
+    char *RTDataPtr = &RTData;
 
     while (j == 0) {
         if (k == 0) {
@@ -90,10 +182,14 @@ void loop() {
 
             // Print menu to serial port
             PrintMenu();
+
             while (mode == 'm') {
                 if (Serial.available() > 0) {
                     prevMode = mode;
                     mode = Serial.read();
+                    if (mode == 'm') {
+                        PrintMenu();
+                    }
                 }
             }
             break;
@@ -133,6 +229,18 @@ void loop() {
             mode = 'm';
             break;
 
+
+        case 'o':
+        case 'O':
+            PrintOptions(RTData);
+            while (mode == 'o') {
+                mode = ChangeOptions(mode, RTDataPtr);
+                if (mode == 'o') {
+                    PrintOptions(RTData);
+                }
+            }
+
+            break;
         // PAUSE mode
         default:
             // Sets LEDs to indicate PAUSE mode
@@ -195,6 +303,7 @@ void PrintMenu(void) {
   Serial.println("|  [W]rite Data   |");
   Serial.println("|  [R]ead  Data   |");
   Serial.println("|  [C]lear Data   |");
+  Serial.println("|  [O]ptions      |");
   Serial.println("------------------");
   Serial.println("Enter [m]enu to return to menu at any point,");
   Serial.println("or press any other key to pause during any point of the program.");
@@ -211,6 +320,7 @@ char PauseMode(char mode){
     Serial.println("[m]enu");
     Serial.println("[w]rite");
     Serial.println("[r]ead");
+    Serial.println("[o]ptions");
     Serial.println("[c]lear \n");
 
     while (mode == 'p') {
@@ -285,9 +395,9 @@ char WriteData(int sensorPin, int collectDataBtn) {
         // This formula comes from the temperature sensor datasheet:
         // CONVERT IN PYTHON SCRIPT
         // degreesC = (voltage - 0.5) * 100.0;
-        //Serial.print("Address[");
-        //Serial.print(addr);
-        //Serial.print("]: \t");
+        Serial.print("Address[");
+        Serial.print(addr);
+        Serial.print("]: \t");
         Serial.println(voltage);
         /***
           Write the value to the appropriate byte of the EEPROM.
@@ -296,7 +406,7 @@ char WriteData(int sensorPin, int collectDataBtn) {
         ***/
 
         // Convert for storage to EEPROM
-        voltVal = (voltage * 10000) / 4;
+        voltVal = (voltage * 1000) / 4;
 
         // Write to EEPROM
         EEPROM.write(addr, voltVal);
@@ -358,7 +468,7 @@ char ReadData(int Pin, char prevMode) {
 
         voltageVal = value;
 
-        voltage = voltageVal * 4 / 10000;
+        voltage = voltageVal * 4 / 1000;
         //Serial.print("Voltage: ");
         //Serial.print("\t");
         //Serial.println(voltage);
@@ -368,9 +478,9 @@ char ReadData(int Pin, char prevMode) {
         //Serial.print("\t");
 
 
-        //Serial.print("Address[");
-        //Serial.print(addr);
-        //Serial.print("]: \t");
+        Serial.print("Address[");
+        Serial.print(addr);
+        Serial.print("]: \t");
         Serial.println(degreesC);
 
 
