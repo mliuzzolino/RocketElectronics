@@ -18,10 +18,11 @@ const int writePin = 5;
 const int readPin = 9;
 const int pausePin = 7;
 const int collectDataBtn = 11;
+const int RTPin = 3;
 const int sensorPin = A0;   // Temperature Pin
 
-
-
+char RTData;
+int j = 0;
 
 
 
@@ -32,12 +33,14 @@ const int sensorPin = A0;   // Temperature Pin
 void setup() {
   Serial.begin(9600);
   pinMode(writePin, OUTPUT);
+  pinMode(RTPin, OUTPUT);
   pinMode(readPin, OUTPUT);
   pinMode(pausePin, OUTPUT);
   pinMode(sensorPin, INPUT);
   pinMode(collectDataBtn, INPUT);
 
-  return;
+  while(Serial.available())
+      Serial.read();
 }
 
 
@@ -49,11 +52,31 @@ void setup() {
 char mode = 'm';
 char prevMode = 'm';
 
-
+int k = 0;
 
 // MAIN LOOP
 void loop() {
 
+    while (j == 0) {
+        if (k == 0) {
+            Serial.print("Would you like to plot real-time data? (y/n) ");
+            k++;
+        }
+
+        if (Serial.available() > 0) {
+            RTData = Serial.read();
+
+            if (RTData == 'y') {
+                digitalWrite(RTPin, HIGH);
+                j++;
+            }
+            else {
+                j++;
+            }
+        }
+
+        return;
+    }
 
     switch (mode) {
 
@@ -166,15 +189,15 @@ char CheckModeChange(void) {
 
 
 void PrintMenu(void) {
+  Serial.println("\n");
   Serial.println("  **  Menu  **    ");
   Serial.println("------------------");
-  Serial.println("  [W]rite Data    ");
-  Serial.println("  [R]ead  Data    ");
-  Serial.println("  [C]lear Data    ");
+  Serial.println("|  [W]rite Data   |");
+  Serial.println("|  [R]ead  Data   |");
+  Serial.println("|  [C]lear Data   |");
   Serial.println("------------------");
-  Serial.println("Type the number and press enter");
   Serial.println("Enter [m]enu to return to menu at any point,");
-  Serial.println("or press any other key to pause during any point of the program.\n\n\n");
+  Serial.println("or press any other key to pause during any point of the program.");
 
   return;
 }

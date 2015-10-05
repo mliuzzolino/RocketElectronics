@@ -15,7 +15,7 @@ ser.flushOutput()
 time.sleep(0.1)
 
 
-print ("Connected to serial port: {}".format(ser.name))
+print ("\n\nConnected to serial port: {}".format(ser.name))
 
 
 def Menu():
@@ -32,7 +32,7 @@ def RealTimePlot(y, count, minPlot, maxPlot):
 
     INTERVAL = 100
     if (count < INTERVAL):
-        
+
         plt.axis([0, count + 10, minPlot, maxPlot])
         plt.ion()
         plt.show()
@@ -135,6 +135,7 @@ def ReadData(mode):
             outputFile.write(out)
 
         time.sleep(0.1)
+        
 
         count += 1
 
@@ -143,11 +144,13 @@ def ReadData(mode):
     return
 
 
-def ProgramIntro():
-    print("Welcome to the program!")
-    print("Would you like to plot real-time data? (y/n)")
-    plotData = raw_input("> ")
-    return plotData
+def RtData():
+    while ser.inWaiting() > 0:
+        out = ser.readline()
+        print(out)
+        time.sleep(0.1)
+        return 'y'
+
 
 
 def PauseProgram():
@@ -157,8 +160,19 @@ def PauseProgram():
 
 def main():
     global launch
+    RTDataPrompt = None
+    plotData = None
 
-    plotData = ProgramIntro()
+    print("Welcome to the program!")
+    while (RTDataPrompt == None):
+        RTDataPrompt = RtData()
+
+
+    while (plotData == None):
+        plotData = raw_input("> ")
+        ser.write(plotData)
+        time.sleep(0.1)
+
 
     time.sleep(1)
     Menu()
@@ -184,16 +198,23 @@ def main():
                 print("[r]ead")
                 print("[c]lear")
 
+
+            elif (mode == 'w'):
+
+                time.sleep(0.1)
+                launch = 0
+
+
         elif (mode == 'w'):
             count = 0
             WriteData(mode, plotData)
-            #mode = PauseProgram()
+            mode = PauseProgram()
 
 
         elif (mode == 'r'):
 
             ReadData(mode)
-            #mode = PauseProgram()
+
 
 
         elif (mode == 'c'):
@@ -207,6 +228,9 @@ def main():
                 time.sleep(0.1)
 
             mode = 'm'
+
+
+
 
 
 
