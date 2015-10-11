@@ -240,7 +240,7 @@ def main():
             while ser.inWaiting() > 0:
                 out = ser.readline()
                 print(out)
-                time.sleep(1)
+                time.sleep(1)   # Need to keep at 1 otherwise errors if smaller.
 
             mode = 'm'
 

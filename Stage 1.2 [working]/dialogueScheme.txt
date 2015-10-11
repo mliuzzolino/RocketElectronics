@@ -1,0 +1,25 @@
+Data exchange scheme :
+- [PYTHON]  : 123 #Are you our device ?
+- [ARDUINO] : 124 #Yes I am
+- [PYTHON]  : 125 #How many blocks do you have for me ?
+- [ARDUINO] : {number of blocks / 256}
+- [ARDUINO] : {number of blocks % 256}
+- [ARDUINO] : {First byte of first block}
+- [ARDUINO] : {First byte of first block}
+- [PYTHON]  : 100 #Got it !
+- [ARDUINO] : {Second byte of first block}
+- [ARDUINO] : {Second byte of first block}
+- [PYTHON]  : 100 #Got it !
+#Let's say an erro occurs :
+- [ARDUINO] : {Third byte of first block}
+- [ARDUINO] : {Third byte of first block WITH A WRONG BYTE}
+- [PYTHON]  : 111 #Oups : I got two different bytes... Send it again
+- [ARDUINO] : {Third byte of first block} #WHatever the result ism arduino continues :
+- [ARDUINO] : {Fourth byte of first block}
+- [ARDUINO] : {Fourth byte of first block}
+...
+...
+...
+- [ARDUINO] : {Last byte of last block}
+- [ARDUINO] : {Last byte of last block}
+- [PYTHON]  : 100 #Got it !
