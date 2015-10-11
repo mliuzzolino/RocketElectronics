@@ -7,16 +7,6 @@ import handShake as hs
 import downloader as dl
 
 
-
-def convert(str):
-    try:
-        val = int(str)
-    except ValueError:
-        val = 'false'
-
-    return val
-
-
 def collect_data(serial_socket):
     print("Entering collect data mode...")
     
@@ -28,7 +18,7 @@ def collect_data(serial_socket):
         if serial_socket.inWaiting() > 0:
             incoming=ord(serial_socket.read(1))
             if incoming == 126:
-                print 'Connection successfull !'
+                print 'Connection successfull!'
                 waiting = False
 
     while True:
@@ -46,7 +36,6 @@ def download_data(serial_socket):
     waiting = True
     serial_socket.write(chr(1)) 
 
-
     while waiting:
 
         if serial_socket.inWaiting() > 0:
@@ -54,31 +43,22 @@ def download_data(serial_socket):
             incoming=ord(serial_socket.read(1))
             
             if incoming == 127:
-                print 'Connection successfull !'
+                print 'Connection successfull!'
                 waiting = False
                 
-
             elif incoming == 128:
                 print("Unsuccessful!")
                 print("Goodbye!")
                 exit()
 
-
-
     choice = raw_input("Would you like to download now? (y/n) ")
     time.sleep(0.2)
-
 
     if choice == 'y':
         dl.downloader_main(serial_socket)
     else:
         print("Goodbye!")
         exit();
-
-
-
-
-
 
 
 
@@ -95,6 +75,7 @@ def main():
     print("[d]ownload data ")
     print("----------------")
     print("\n")
+
     mode = raw_input("> ")
 
     if (mode == 'c'):
