@@ -34,6 +34,7 @@ def update_progress(progress):
     sys.stdout.flush()
     
 
+
 def receive_a_byte(serial_socket, timeout=2):
     # receive_a_byte(serial_socket, timeout) : wait for a byte for timeout
     ## As a byte should always come in double, it waits for the second one to come, check if it is the same and, otherwise ask for a third repeat
@@ -48,7 +49,6 @@ def receive_a_byte(serial_socket, timeout=2):
     elapsed_time = 0
 
     while waiting1:
-        
 
         #We wait to have received 2 bytes
         if serial_socket.inWaiting() > 1:
@@ -90,7 +90,9 @@ def receive_a_byte(serial_socket, timeout=2):
             print('Connection timeout')
 
     return result
-            
+      
+
+
 def receive_a_block(serial_socket):
     result = []
     for i in range(0, 24):
@@ -101,51 +103,8 @@ def receive_a_block(serial_socket):
     return result
 
 
-def downloader_main(serial_socket):
-    # CONSTANTS declaration :
-    RECORDING_FREQUENCY = 0.1
-    BLOCK_SIZE = 25
 
-    communication_error = False
-    
-
-    # Establish a connection :
-    serial_socket.write(chr(125))
-
-    #Wait for a response :
-    waiting = True
-    request_time = time.time()
-    while waiting :
-        if serial_socket.inWaiting() > 1:
-            number_of_blocks = ord(serial_socket.read(1)) * 256 + ord(serial_socket.read(1))
-            print('There are {} blocks stored on the device (~{} seconds of recording) !'.format(number_of_blocks, number_of_blocks * RECORDING_FREQUENCY))
-            waiting = False
-        if time.time() - request_time > 15:
-            print('Connection timout : Is the device still connected ?')
-            waiting = False
-            communication_error = True
-            serial_socket.close()
-        time.sleep(0.2)
-
-
-
-    if communication_error == False :
-        print('Let\'s download the data')
-        raw_data = []
-        update_progress(0)
-        time.sleep(2)
-        #Download all the blocks 1 by 1 :
-        for i in range(0, number_of_blocks):
-            raw_data.append(receive_a_block(serial_socket))
-            update_progress(float(float(i) / float(number_of_blocks)))
-        update_progress(1)
-        print('All data downloaded from device !')
-        print('Generating the raw-data file...')
-        
-
-
-
-        # Create a new file to store the raw data
+def create_raw_data_file(raw_data):
         raw_file = open('./output/{}flight.raw_data'.format(time.strftime("%d-%m_%H-%M-%S", time.gmtime())), 'w')
         for i in range(0, len(raw_data)):
             for j in range(0,len(raw_data[i])):
@@ -156,7 +115,10 @@ def downloader_main(serial_socket):
                     raw_file.write(',')
         raw_file.close()
         print('Raw-data file ready.\nProcessing the data.')
-        
+
+
+
+def create_csv_file(raw_data):
 
         # Create a new file to store the processed data
         processed_file = open('./output/{}flight.csv'.format(time.strftime("%d-%m_%H-%M-%S", time.gmtime())), 'w')
@@ -198,3 +160,52 @@ def downloader_main(serial_socket):
             print('Data Processed!')
 
 
+
+def downloader_main(serial_socket):
+    # CONSTANTS declaration :
+    RECORDING_FREQUENCY = 0.1
+    BLOCK_SIZE = 25
+
+    communication_error = False
+    
+
+    # Establish a connection :
+    serial_socket.write(chr(125))
+
+    #Wait for a response :
+    waiting = True
+    request_time = time.time()
+    while waiting :
+        if serial_socket.inWaiting() > 1:
+            number_of_blocks = ord(serial_socket.read(1)) * 256 + ord(serial_socket.read(1))
+            print('There are {} blocks stored on the device (~{} seconds of recording) !'.format(number_of_blocks, number_of_blocks * RECORDING_FREQUENCY))
+            waiting = False
+        if time.time() - request_time > 15:
+            print('Connection timout : Is the device still connected ?')
+            waiting = False
+            communication_error = True
+            serial_socket.close()
+        time.sleep(0.2)
+
+
+    if communication_error == False:
+        print('Let\'s download the data')
+        raw_data = []
+        update_progress(0)
+        time.sleep(2)
+        #Download all the blocks 1 by 1 :
+        for i in range(0, number_of_blocks):
+            raw_data.append(receive_a_block(serial_socket))
+            update_progress(float(float(i) / float(number_of_blocks)))
+        update_progress(1)
+        print('All data downloaded from device !')
+        print('Generating the raw-data file...')
+        
+
+        # Create raw data file
+        create_raw_data_file(raw_data)
+        
+        # Create CSV file
+        create_csv_file(raw_data)
+
+        
