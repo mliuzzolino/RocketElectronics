@@ -241,7 +241,8 @@ void MainDataSend(void) {
     while (1) {
 
         value = ReadFromEEPROM(addr, evenCheckCounter);
-    
+        evenCheckCounter++;
+
         // First send
         Serial.write(value);
         // Second send (to compare to first)
@@ -262,10 +263,10 @@ void MainDataSend(void) {
                     break;  
                 }
             }
-        evenCheckCounter++;
+        
         }
         
-        //delay(1000);
+        
 
         // Increment data address
         addr++;
@@ -285,17 +286,12 @@ void MainDataSend(void) {
 long ReadFromEEPROM(int addr, int evenCheckCounter) {
     long value;
     
-    if (evenCheckCounter % 2 == 0) {
-        value = EEPROM.read(addr);
-        delay(100);
-        return ((value << 0) & 0xFF);
+    
+    value = EEPROM.read(addr);
+    delay(100);
+    return ((value << 0) & 0xFF);
       
-    }
-    else {
-        value = EEPROM.read(addr);
-        delay(100);
-        return ((value << 8) & 0xFFFF);
-    }
+   
 }
 
 
@@ -396,12 +392,12 @@ void WriteToEEP(char realTimeData) {
      
     while (1) {
       
-        voltage = analogRead(sensorPin) / 4;
+        voltage = analogRead(sensorPin);
         
 
         // First get ID:
-        id_1 = (id & 0xFF);
-        id_0 = ((id >> 8) & 0xFF);
+        id_0 = (id & 0xFF);
+        id_1 = ((id >> 8) & 0xFF);
         EEPROM.write(addr, id_1);
         addr++;
         EEPROM.write(addr, id_0);
@@ -418,16 +414,16 @@ void WriteToEEP(char realTimeData) {
         
         
         // Then x, y, z acceleration (FINE)
-        x = voltage + 25;
-        y = voltage + 22;
-        z = voltage + 26;
+        x = voltage + 2520;
+        y = voltage + 2254;
+        z = voltage + 2636;
       
-        x_1 = (x & 0xFF);
-        x_0 = ((x >> 8) & 0xFF);
-        y_1 = (y & 0xFF);
-        y_0 = ((y >> 8) & 0xFF);
-        z_1 = (z & 0xFF);
-        z_0 = ((z >> 8) & 0xFF);
+        x_0 = (x & 0xFF);
+        x_1 = ((x >> 8) & 0xFF);
+        y_0 = (y & 0xFF);
+        y_1 = ((y >> 8) & 0xFF);
+        z_0 = (z & 0xFF);
+        z_1 = ((z >> 8) & 0xFF);
 
         EEPROM.write(addr, x_1);
         addr++;
@@ -446,16 +442,16 @@ void WriteToEEP(char realTimeData) {
         
         // Then X, Y, Z acceleration (ROUGH)
         
-        X = voltage;
-        Y = voltage + 1;
-        Z = voltage + 2;
+        X = voltage + 1253;
+        Y = voltage + 1363;
+        Z = voltage + 1432;
 
-        X_1 = (X & 0xFF);
-        X_0 = ((X >> 8) & 0xFF);
-        Y_1 = (Y & 0xFF);
-        Y_0 = ((Y >> 8) & 0xFF);
-        Z_1 = (Z & 0xFF);
-        Z_0 = ((Z >> 8) & 0xFF);
+        X_0 = (X & 0xFF);
+        X_1 = ((X >> 8) & 0xFF);
+        Y_0 = (Y & 0xFF);
+        Y_1 = ((Y >> 8) & 0xFF);
+        Z_0 = (Z & 0xFF);
+        Z_1 = ((Z >> 8) & 0xFF);
         
         EEPROM.write(addr, X_1);
         addr++;
@@ -474,16 +470,16 @@ void WriteToEEP(char realTimeData) {
         
         // Then x, y, z rotation
         
-        r_x = voltage + 15;
-        r_y = voltage + 12;
-        r_z = voltage + 16;
+        r_x = voltage + 2425;
+        r_y = voltage + 2236;
+        r_z = voltage + 2356;
 
-        r_x1 = (r_x & 0xFF);
-        r_x0 = ((r_x >> 8) & 0xFF);
-        r_y1 = (r_y & 0xFF);
-        r_y0 = ((r_y >> 8) & 0xFF);
-        r_z1 = (r_z & 0xFF);
-        r_z0 = ((r_z >> 8) & 0xFF);
+        r_x0 = (r_x & 0xFF);
+        r_x1 = ((r_x >> 8) & 0xFF);
+        r_y0 = (r_y & 0xFF);
+        r_y1 = ((r_y >> 8) & 0xFF);
+        r_z0 = (r_z & 0xFF);
+        r_z1 = ((r_z >> 8) & 0xFF);
 
 
         
@@ -505,9 +501,9 @@ void WriteToEEP(char realTimeData) {
         
         
         // Then pressure
-        alt = voltage;
-        alt_1 = (alt & 0xFF);
-        alt_0 = ((alt >> 8) & 0xFF);
+        alt = voltage + 1003;
+        alt_0 = (alt & 0xFF);
+        alt_1 = ((alt >> 8) & 0xFF);
 
  
         EEPROM.write(addr, alt_1);
@@ -516,8 +512,8 @@ void WriteToEEP(char realTimeData) {
         addr++;
         
         
-        endCheck_1 = (endCheck & 0xFF);
-        endCheck_0 = ((endCheck >> 8) & 0xFF);
+        endCheck_0 = (endCheck & 0xFF);
+        endCheck_1 = ((endCheck >> 8) & 0xFF);
         // Then unique end 1
         EEPROM.write(addr, endCheck_1);
         addr++;

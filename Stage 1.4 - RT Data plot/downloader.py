@@ -54,6 +54,8 @@ def receive_a_byte(serial_socket, timeout=2):
         if serial_socket.inWaiting() > 1:
             incoming1 = ord(serial_socket.read(1))
             incoming2 = ord(serial_socket.read(1))
+            
+            
             if incoming1 == incoming2: # If both bytes are equals, we go on
                 serial_socket.write(chr(100)) # Well received !
                 result = incoming1
@@ -124,6 +126,9 @@ def create_csv_file(raw_data):
         processed_file = open('./output/{}flight.csv'.format(time.strftime("%d-%m_%H-%M-%S", time.gmtime())), 'w')
         date = 0
 
+        # create header in file
+        
+        processed_file.write("ID,TIMESTAMP,x,y,z,X,Y,Z,rx,ry,rz,ALT,CHECK\n")
 
         
         #Store all the lines in the file, and check that they are consistent
@@ -134,7 +139,7 @@ def create_csv_file(raw_data):
             block_id = int(raw_data[i][0]) * 256 + int(raw_data[i][1])
             date = date + int(raw_data[i][2]) * 256 + int(raw_data[i][3])
             #print(block_id)
-            verification_block = int(raw_data[i][22]) * 256 + int(raw_data[i][23])
+            verification_block = int(raw_data[i][24]) * 256 + int(raw_data[i][25])
             #print(verification_block)
             
             if block_id != i:
