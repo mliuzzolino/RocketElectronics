@@ -1,3 +1,10 @@
+"""
+    Authors: Guillaume Biton and Michael Iuzzolino
+    Organization: University of Arizona
+    Date: September - December 2015
+"""
+
+
 import sys
 import glob
 import serial

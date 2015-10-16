@@ -1,6 +1,12 @@
-# This programm download and process data from our IMU device
-# By Guillaume Biton at the University of Arizona - October 2015
-# Version 1.0
+"""
+    Authors: Guillaume Biton and Michael Iuzzolino
+    Organization: University of Arizona
+    Date: September - December 2015
+    Version: 1.0
+
+    This script downloads and processes data from our IMU device
+"""
+
 
 import sys
 import glob
@@ -107,7 +113,7 @@ def receive_a_block(serial_socket):
 
 
 def create_raw_data_file(raw_data):
-        raw_file = open('./output/{}flight.raw_data'.format(time.strftime("%d-%m_%H-%M-%S", time.gmtime())), 'w')
+        raw_file = open('./output/{}RT_flight_data.raw_data'.format(time.strftime("%d-%m_%H-%M-%S", time.gmtime())), 'w')
         for i in range(0, len(raw_data)):
             for j in range(0,len(raw_data[i])):
                 raw_file.write(str(raw_data[i][j]))

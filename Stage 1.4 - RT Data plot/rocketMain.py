@@ -1,8 +1,7 @@
 """
-
-    Author: Michael Iuzzolino
+    Authors: Guillaume Biton and Michael Iuzzolino
     Organization: University of Arizona
-    Date: October 11th, 2015
+    Date: September - December 2015
 
 Notes:
 Possible mechanism for breaking out of data collect...
@@ -36,8 +35,6 @@ import matplotlib.animation as animation
 from collections import deque
 
 
-
-
 # plot class
 class AnalogPlot:
     # constr
@@ -48,7 +45,8 @@ class AnalogPlot:
 
     # update plot
     def update(self, frame_num, data_lines, lines):
-        
+    
+
         # generate data:
         waiting = True
         input_buffer = []
@@ -70,9 +68,11 @@ class AnalogPlot:
 
                     waiting = False
 
+
                 else:
                     input_buffer.append(ord(self.ser.read(1)))
-                    
+        
+
             
         # return it
     
