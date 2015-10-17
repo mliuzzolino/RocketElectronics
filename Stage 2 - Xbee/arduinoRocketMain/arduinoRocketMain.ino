@@ -13,7 +13,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <EEPROM.h>
+#include <SoftwareSerial.h>
 
+SoftwareSerial XBee(2, 3);
 
 // declarations
 char mode = 'r';   // c: collect data, d: (download) read and send to serial port
@@ -53,6 +55,7 @@ void WriteToEEP(char realTimeData);
  */
 void setup() {
     Serial.begin(9600);
+    XBee.begin(9600);
     pinMode(sendPin, OUTPUT);
     pinMode(collectPin, OUTPUT);
     pinMode(handShakePin, OUTPUT);
@@ -114,14 +117,16 @@ void loop() {
  */
  
 void ComsHandShake(void) {
-
+    int cnt = 0;
     // Establish connection with Python script
-    if (Serial.available() > 0) {
-        if (Serial.read() == 123) {
-            Serial.write(124);
+    if (XBee.available() > 0) {
+        if (XBee.read() == 123) {         // python sends 123 to unit on rocket
+            while (cnt < 1000) {
+                XBee.write(124);              // rocket writes 124 on xbee to send back to laptop python script
+                cnt++;
+            }
             handShakeSuccessful = 'y';
             digitalWrite(handShakePin, HIGH);
-              
         }
     }
     return;
@@ -138,28 +143,31 @@ void ComsHandShake(void) {
 
 char GetMode(void) {
 
-    int userMode;
+    int userMode, cnt = 0;
     
     while (1) {
-        if (Serial.available() > 0) {
-            userMode = Serial.read();
+        if (XBee.available() > 0) {
+            userMode = XBee.read();
             if (userMode == 0) {
-                Serial.write(126);
+                while (cnt < 1000) {
+                XBee.write(126);        // rocket confirms user mode change by sending 126 to computer on ground
+                cnt++;
+                }
                 digitalWrite(sendPin, LOW);
                 digitalWrite(collectPin, HIGH);
                 
                 return 'c';
             }
             else if (userMode == 1) {
-                delay(500);
-                Serial.write(127);
+                delay(2000);
+                XBee.write(127);      // rocket confirms user mode change by sending 127 to computer on ground
                 digitalWrite(sendPin, HIGH);
                 digitalWrite(collectPin, LOW);
                 
                 return 'd';
             }
             else {
-                Serial.write(128);
+                XBee.write(128);       // rocket confirms user mode change error by sending 128 to computer on ground
             }
         }
     }
@@ -192,7 +200,7 @@ void InitializeDataSend(void) {
     while (dataInitialized == 'n') {
     
         if (Serial.available() > 0) {
-            if (Serial.read() == 125) {
+            if (Serial.read() == 125) {         // read 125 from ground computer
                 // Case 1: < 256 blocks
                 if (EEPROM.read(0) == -1) {
                     blocks = EEPROM.read(1);
@@ -204,8 +212,8 @@ void InitializeDataSend(void) {
                 }
 
                 // Write block data to serial for python script to read                
-                Serial.write(blocks / 256);   // #1    #blocks / 256
-                Serial.write(blocks % 256);   // #2    #blocks % 256
+                XBee.write(blocks / 256);   // #1    #blocks / 256        // rocket sends data to ground
+                XBee.write(blocks % 256);   // #2    #blocks % 256
 
                 dataInitialized == 'y';
                 
@@ -244,9 +252,9 @@ void MainDataSend(void) {
         evenCheckCounter++;
 
         // First send
-        Serial.write(value);
+        XBee.write(value);
         // Second send (to compare to first)
-        Serial.write(value);
+        XBee.write(value);
         
         checkingDataErrors = 'y';
         
@@ -258,7 +266,7 @@ void MainDataSend(void) {
                 }
                 else if (Serial.read() == 111) {
                     // Send data 3rd time to check
-                    Serial.write(value); 
+                    XBee.write(value); 
                     checkingDataErrors = 'n';
                     break;  
                 }
@@ -309,26 +317,32 @@ void InitializeBlock(void) {
 char DataCollectInitialize(void) {
     char dataCollectInitialize = 'n';
     char realTimeData = 'n';
-    int val;
+    int val, cnt = 0;
     int blinkErrorCnt = 0;
     
     while (dataCollectInitialize == 'n') {
     
-        if (Serial.available() > 0) {
-            val = Serial.read();
+        if (XBee.available() > 0) {
+            val = XBee.read();
             if (val == 244) {
-                Serial.write(11);
+                while (cnt < 1000) {
+                    XBee.write(11);
+                    cnt++;
+                }
+
                 digitalWrite(RTDataPin, HIGH);
                 return 'y';
                 
             }
             else if (val == 245) {
-                Serial.write(12);
+                delay(2000);
+                XBee.write(12);
                 digitalWrite(RTDataPin, LOW);
                 return 'n';
             }
             else {
-                Serial.write(13);
+                delay(2000);
+                XBee.write(13);
                 realTimeData = 'n';
 
                 while (blinkErrorCnt < 10) {
@@ -532,40 +546,40 @@ void WriteToEEP(char realTimeData) {
             //              r_x0, r_x1, r_y0, r_y1, r_z0, r_z1, 
             //              alt_0, alt_1, endCheck0, endCheck1
 
-            Serial.write(blocks);           // 0
+            XBee.write(blocks);           // 0
 
             // Fine acceleration
-            Serial.write(x_0);              // 1
-            Serial.write(x_1);              // 2
-            Serial.write(y_0);              // 3
-            Serial.write(y_1);              // 4
-            Serial.write(z_0);              // 5
-            Serial.write(z_1);              // 6
+            XBee.write(x_0);              // 1
+            XBee.write(x_1);              // 2
+            XBee.write(y_0);              // 3
+            XBee.write(y_1);              // 4
+            XBee.write(z_0);              // 5
+            XBee.write(z_1);              // 6
 
             // Rough acceleration
-            Serial.write(X_0);              // 7
-            Serial.write(X_1);              // 8
-            Serial.write(Y_0);              // 9
-            Serial.write(Y_1);              // 10
-            Serial.write(Z_0);              // 11
-            Serial.write(Z_1);              // 12
+            XBee.write(X_0);              // 7
+            XBee.write(X_1);              // 8
+            XBee.write(Y_0);              // 9
+            XBee.write(Y_1);              // 10
+            XBee.write(Z_0);              // 11
+            XBee.write(Z_1);              // 12
 
             // Rotational data
-            Serial.write(r_x0);             // 13
-            Serial.write(r_x1);             // 14
-            Serial.write(r_y0);             // 15
-            Serial.write(r_y1);             // 16
-            Serial.write(r_z0);             // 17
-            Serial.write(r_z1);             // 18
+            XBee.write(r_x0);             // 13
+            XBee.write(r_x1);             // 14
+            XBee.write(r_y0);             // 15
+            XBee.write(r_y1);             // 16
+            XBee.write(r_z0);             // 17
+            XBee.write(r_z1);             // 18
 
             // Altitude data
-            Serial.write(alt_0);            // 19
-            Serial.write(alt_1);            // 20
+            XBee.write(alt_0);            // 19
+            XBee.write(alt_1);            // 20
         }
         else if (realTimeData == 'n') {
             
             // timestamp
-            Serial.write(blocks);
+            XBee.write(blocks);
             
         }
         
