@@ -22,13 +22,14 @@ Good references on 3D plotting:
 
 
 import sys, serial, glob, time, argparse
-import handShake as hs
-import downloader as dl
+import modules.handShake as hs
+import modules.downloader as dl
 import numpy as np
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
 from collections import deque
+
 
 
 # plot class
@@ -127,8 +128,8 @@ class AnalogPlot:
                         #x_coord = (x_fine_coord + (self.k % 5)) / 1e2
                         #y_coord = (y_fine_coord + (self.k % 6)) / 1e2
                         #z_coord = (z_fine_coord + np.exp(self.k * 0.1)) / 1e2
-                        x_coord = self.t * 0.1
-                        y_coord = self.t * 0.2
+                        x_coord = self.t * 0.01
+                        y_coord = self.t * 0.02
                         z_coord = -self.t**2 + 200*self.t
                         self.t += 1
                     else:
