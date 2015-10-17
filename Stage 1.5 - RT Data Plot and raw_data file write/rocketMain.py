@@ -48,6 +48,7 @@ class AnalogPlot:
         self.min_z = 0.0
         self.max_z = 0.0
 
+
     # update plot
     def update(self, frame_num, data_lines, lines, ax):
        
