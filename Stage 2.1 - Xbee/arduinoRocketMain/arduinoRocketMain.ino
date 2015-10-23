@@ -43,7 +43,7 @@ void MainDataSend(void);
 long ReadFromEEPROM(int addr, int evenCheckCounter);
 char DataCollectInitialize(void);
 void WriteToEEP(char realTimeData);
-
+void WaitForLaunch(void);
 
 /*
  * Function: setup
@@ -94,6 +94,12 @@ void loop() {
     else if (mode == 'c') {
         InitializeBlock();
         realTimeData = DataCollectInitialize();
+        // Initialize rocket's initial position
+        if (realTimeData == 'y') {
+            GetInitialPosition();
+        }
+        
+        WaitForLaunch();
         WriteToEEP(realTimeData);
     }
 }
@@ -118,10 +124,8 @@ void ComsHandShake(void) {
     // Establish connection with Python script
     if (Serial.available() > 0) {
         if (Serial.read() == 123) {
-            while (cnt < 1000) {
-                Serial.write(124);
-                cnt++;
-            }
+            Serial.write(124);
+            
             handShakeSuccessful = 'y';
             digitalWrite(handShakePin, HIGH);
               
@@ -148,30 +152,29 @@ char GetMode(void) {
         if (Serial.available() > 0) {
             userMode = Serial.read();
             if (userMode == 0) {
-                while (cnt < 1000) {
+                
                     Serial.write(126);
-                    cnt++;
-                }
+                
+                
                 digitalWrite(sendPin, LOW);
                 digitalWrite(collectPin, HIGH);
                 
                 return 'c';
             }
             else if (userMode == 1) {
-                while (cnt < 1000) {
+                
                 Serial.write(127);
-                cnt++;
-                }
+                
                 digitalWrite(sendPin, HIGH);
                 digitalWrite(collectPin, LOW);
                 
                 return 'd';
             }
             else {
-                while (cnt < 1000) {
+                
                     Serial.write(128);
-                    cnt++;
-                }
+                
+                
             }
         }
     }
@@ -182,7 +185,19 @@ char GetMode(void) {
 
 
 
-
+void WaitForLaunch(void) {
+   int launch, cnt = 0;
+    
+    while (1) {
+        if (Serial.available() > 0) {
+            launch = Serial.read();
+            if (launch == 211) {
+                    Serial.write(111); 
+                return;  
+            }            
+        }
+    }
+}
 
 /*
  * Function: InitializeDataSend
@@ -318,6 +333,51 @@ void InitializeBlock(void) {
 
 
 
+void GetInitialPosition(void) {
+    int val, voltage;
+    int x, y, z;
+    byte x_0, x_1, y_0, y_1, z_0, z_1;
+    voltage = analogRead(sensorPin);
+
+    // Then x, y, z acceleration (FINE)
+    x = voltage;
+    y = voltage;
+    z = voltage;
+  
+    x_0 = (x & 0xFF);
+    x_1 = ((x >> 8) & 0xFF);
+    y_0 = (y & 0xFF);
+    y_1 = ((y >> 8) & 0xFF);
+    z_0 = (z & 0xFF);
+    z_1 = ((z >> 8) & 0xFF);
+
+
+    if (Serial.available() > 0) {
+         val = Serial.read();
+         if (val == 204) {
+              Serial.write(113);
+    
+              Serial.write(x_0);              // 1
+              
+              Serial.write(x_1);              // 2
+              
+              Serial.write(y_0);              // 3
+              
+              Serial.write(y_1);              // 4
+              
+              Serial.write(z_0);              // 5
+              
+              Serial.write(z_1);              // 6
+              
+         }
+    }
+    
+    return;
+    
+}
+
+
+
 char DataCollectInitialize(void) {
     char dataCollectInitialize = 'n';
     char realTimeData = 'n';
@@ -329,27 +389,29 @@ char DataCollectInitialize(void) {
         if (Serial.available() > 0) {
             val = Serial.read();
             if (val == 244) {
-                while (cnt < 1000) {
-                    Serial.write(11);
-                    cnt++;
-                }
-                digitalWrite(RTDataPin, HIGH);
-                return 'y';
                 
+                Serial.write(11);
+                
+                
+                digitalWrite(RTDataPin, HIGH);
+
+                
+                
+                return 'y';    
             }
             else if (val == 245) {
-                while (cnt < 1000) {
+                
                     Serial.write(12);
-                    cnt++;
-                }
+                
+                
                 digitalWrite(RTDataPin, LOW);
                 return 'n';
             }
             else {
-                while (cnt < 1000) {
+                
                     Serial.write(13);
-                    cnt++;
-                }
+                
+                
                 
                 realTimeData = 'n';
 
@@ -385,6 +447,7 @@ char DataCollectInitialize(void) {
  
 void WriteToEEP(char realTimeData) {
     int blocks = 0;
+    byte blocks_0, blocks_1;
     
     int addr = 2;
     int voltage;
@@ -555,34 +618,20 @@ void WriteToEEP(char realTimeData) {
             //              alt_0, alt_1, endCheck0, endCheck1
 
             Serial.write(blocks);           // 0
-
+            
             // Fine acceleration
             Serial.write(x_0);              // 1
+            
             Serial.write(x_1);              // 2
+            
             Serial.write(y_0);              // 3
+            
             Serial.write(y_1);              // 4
+            
             Serial.write(z_0);              // 5
+            
             Serial.write(z_1);              // 6
-
-            // Rough acceleration
-            Serial.write(X_0);              // 7
-            Serial.write(X_1);              // 8
-            Serial.write(Y_0);              // 9
-            Serial.write(Y_1);              // 10
-            Serial.write(Z_0);              // 11
-            Serial.write(Z_1);              // 12
-
-            // Rotational data
-            Serial.write(r_x0);             // 13
-            Serial.write(r_x1);             // 14
-            Serial.write(r_y0);             // 15
-            Serial.write(r_y1);             // 16
-            Serial.write(r_z0);             // 17
-            Serial.write(r_z1);             // 18
-
-            // Altitude data
-            Serial.write(alt_0);            // 19
-            Serial.write(alt_1);            // 20
+            
         }
         else if (realTimeData == 'n') {
             
@@ -594,13 +643,14 @@ void WriteToEEP(char realTimeData) {
           
         // keep track of how many blocks in program
         blocks++;
-        
-        if (blocks < 256) {
-            EEPROM.write(1, blocks);
-        }
-        else {
-            EEPROM.write(0, blocks);
-        } 
+        blocks_0 = (blocks & 0xFF);
+        blocks_1 = ((blocks >> 8) & 0xFF);
+
+        EEPROM.write(0, blocks_1);
+        addr++;
+        EEPROM.write(1, blocks_0);
+        addr++;
+
         
         id++;
         timeStamp_0++;

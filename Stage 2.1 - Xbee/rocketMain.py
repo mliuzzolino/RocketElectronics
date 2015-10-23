@@ -56,12 +56,13 @@ class AnalogPlot:
         # generate data:
         waiting = True
         input_buffer = []
+        
 
         while waiting:
             
             if self.ser.inWaiting() > 0:
                 
-                if len(input_buffer) == 21:
+                if len(input_buffer) == 7:
                     converted_data = []
 
                     # Time stamp
@@ -83,7 +84,7 @@ class AnalogPlot:
                     z1_fine = input_buffer[6]
                     z_fine_coord = z0_fine + z1_fine
                     converted_data.append(z_fine_coord)
-
+                    """
                     # Rough Acceleration
                     X0_rough = input_buffer[7]
                     X1_rough = input_buffer[8]
@@ -121,17 +122,17 @@ class AnalogPlot:
                     alt1 = input_buffer[20]
                     altitude_data = alt0 * 256 + alt1
                     converted_data.append(altitude_data)
-
+                    """
                     
                     # Simulate data for plotting
 
                     if self.t <= 200:
-                        #x_coord = (x_fine_coord + (self.k % 5)) / 1e2
-                        #y_coord = (y_fine_coord + (self.k % 6)) / 1e2
-                        #z_coord = (z_fine_coord + np.exp(self.k * 0.1)) / 1e2
-                        x_coord = self.t * 0.01
-                        y_coord = self.t * 0.02
-                        z_coord = -self.t**2 + 200*self.t
+                        x_coord = (x_fine_coord + (self.t % 5)) / 1e2
+                        y_coord = (y_fine_coord + (self.t % 6)) / 1e2
+                        z_coord = (z_fine_coord + (200 * self.t - self.t**2  ))
+                        #x_coord = self.t * 0.01
+                        #y_coord = self.t * 0.02
+                        #z_coord = -self.t**2 + 200*self.t
                         self.t += 1
                     else:
                         x_coord = 0
@@ -160,14 +161,10 @@ class AnalogPlot:
                         self.min_y = y_coord - 10.0
 
             
-
-
-
-                    #ax.set_xlim3d([-5.0, 5.0])
-                    
-                    #ax.set_ylim3d([-5.0, 5.0])
-                    ax.set_xlim3d([self.min_x, self.max_x])
-                    ax.set_ylim3d([self.min_y, self.max_y])
+                    ax.set_xlim3d([-5.0, 10.0])
+                    ax.set_ylim3d([-5.0, 10.0])
+                    #ax.set_xlim3d([self.min_x, self.max_x])
+                    #ax.set_ylim3d([self.min_y, self.max_y])
                     ax.set_zlim3d([0, self.max_z])
 
                     waiting = False
@@ -178,9 +175,13 @@ class AnalogPlot:
                     dl.create_raw_data_file_in_RT(self.raw_file, converted_data)
 
                     
-
                 else:
-                    input_buffer.append(ord(self.ser.read(1)))
+                    try:
+                        input_buffer.append(ord(self.ser.read(1)))
+                    except:
+                        print("ERROR")
+                        input_buffer.append(input_buffer[len(input_buffer)-1])
+                   
 
             
         # return it
@@ -199,6 +200,51 @@ class AnalogPlot:
         # close serial
         self.ser.flush()
         self.ser.close()  
+
+
+
+
+def initialize_rocket_position(serial_socket):
+    waiting = True
+    input_buffer = []
+
+    serial_socket.write(chr(204))
+
+    while waiting:
+        print("HERE")
+        if serial_socket.inWaiting() > 0:
+            
+            incoming=ord(serial_socket.read(1))
+
+            if incoming == 113:
+
+                if len(input_buffer) == 6:
+                    initial_position = []
+
+                    # Fine Acceleration
+                    x0_fine = input_buffer[0]
+                    x1_fine = input_buffer[1]
+                    x_fine_coord = x0_fine + x1_fine
+                    initial_position.append(x_fine_coord)
+
+                    y0_fine = input_buffer[2]
+                    y1_fine = input_buffer[3]
+                    y_fine_coord = y0_fine + y1_fine
+                    initial_position.append(y_fine_coord)
+
+                    z0_fine = input_buffer[4]
+                    z1_fine = input_buffer[5]
+                    z_fine_coord = z0_fine + z1_fine
+                    initial_position.append(z_fine_coord)
+
+                    waiting = False
+
+                else:
+                    input_buffer.append(ord(serial_socket.read(1)))
+                
+
+    return initial_position
+
 
 
 
@@ -225,6 +271,8 @@ def real_time_data_prompt(serial_socket):
         real_time_data = 'OFF'
 
         # Handshake with arduino to ensure RT data engaged
+
+
         python_send = 245
         arduino_success = 12
         arduino_fail = 13
@@ -239,6 +287,29 @@ def real_time_data_prompt(serial_socket):
 
 
 
+
+def WaitingForLaunch(serial_socket):
+    
+    python_send = 211
+    arduino_success = 111    
+    waiting = True
+    print("Ready to launch? (y/n) ")
+
+    while waiting:
+        # Get launch from user
+        launch = raw_input("> ")
+
+        # launch 'y': Launch!
+        if (launch == 'y'):
+            hs.hand_shake(serial_socket, python_send, arduino_success)
+
+            print("\tLaunching!")
+            return
+            
+        
+        
+
+
 def collect_data(serial_socket):
     
 
@@ -250,10 +321,20 @@ def collect_data(serial_socket):
     hs.hand_shake(serial_socket, python_send, arduino_success, arduino_fail)
     # HANDSHAKE complete
 
-
+    # Determine if RT data will be turned on
     real_time_data = real_time_data_prompt(serial_socket)
 
+    if real_time_data == 'ON':
+        print("Calculating rocket's initial position...")
+        initial_position = initialize_rocket_position(serial_socket)
+        x_0 = initial_position[0]
+        y_0 = initial_position[1]
+        z_0 = initial_position[2]
 
+
+
+    # Primed for launch:
+    WaitingForLaunch(serial_socket)
 
 
     print("Plotting data now...")
@@ -281,9 +362,9 @@ def collect_data(serial_socket):
         frame_num = 2500
 
         data_lines = [np.empty((3, frame_num))]
+
         
-        lines = [ax.plot([0], [0], [0])[0]]
-        
+        lines = [ax.plot([x_0], [y_0], [z_0])[0]]   
 
         anim = animation.FuncAnimation(fig, analog_plot.update, frame_num, fargs=(data_lines, lines, ax), interval=50, blit=False)
 
@@ -303,8 +384,11 @@ def collect_data(serial_socket):
     elif real_time_data == 'OFF':
         while True:
             while serial_socket.inWaiting() > 0:
-                  
-                print ord(serial_socket.read(1))
+                try:  
+                    print ord(serial_socket.read(1))
+                except SerialException:
+                    print("Fail")
+
             
         
 

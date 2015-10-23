@@ -78,7 +78,7 @@ def choose_serial_ports():
                     print ('Connection timout : the device is either busy or not an IMU')
                     waiting = False
                     serial_socket.close()
-                time.sleep(0.2)
+                #time.sleep(0.2)
         else :
             print ('This is not a valid answer.')
 
@@ -98,7 +98,7 @@ def hand_shake(serial_socket, python_send, arduino_success, arduino_fail=128, me
         if serial_socket.inWaiting() > 0:
             
             incoming=ord(serial_socket.read(1))
-            
+
             if incoming == arduino_success:
                 print (message_success)
                 waiting = False
@@ -113,7 +113,7 @@ def hand_shake(serial_socket, python_send, arduino_success, arduino_fail=128, me
             waiting = False
             serial_socket.close()
         
-        time.sleep(0.2)
+        
 
 
 
