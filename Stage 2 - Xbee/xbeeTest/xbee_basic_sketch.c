@@ -12,10 +12,13 @@ Hardware Hookup:
 
 *****************************************************************/
 // We'll use SoftwareSerial to communicate with the XBee:
-#include <SoftwareSerial.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <math.h>
+#include <EEPROM.h>
 // XBee's DOUT (TX) is connected to pin 2 (Arduino's Software RX)
 // XBee's DIN (RX) is connected to pin 3 (Arduino's Software TX)
-SoftwareSerial XBee(2, 3); // RX, TX
+
 
 void setup()
 {
@@ -25,20 +28,18 @@ void setup()
   
   Serial.begin(9600);
   Serial.println("Arduino started sending bytes via XBee");
-  XBee.begin(9600);
-  
 }
 
 void loop()
 {
   if (Serial.available())
   { // If data comes in from serial monitor, send it out to XBee
-    XBee.write(Serial.read());    // from rocket TO computer
+    Serial.write(Serial.read());    // from rocket TO computer
   }
-  if (XBee.available())
+  if (Serial.available())
   { // If data comes in from XBee, send it out to serial monitor
     Serial.write("Yes");    // from computer TO rocket
-    Serial.write(XBee.read());
+    Serial.write(Serial.read());
   }
 }
 
